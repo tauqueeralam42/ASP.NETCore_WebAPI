@@ -1,72 +1,125 @@
-﻿using CMS.WebApi.Models;
+﻿using CMS.WebApi.Data;
+using CMS.WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMS.WebApi.Controllers
 {
 
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
-    public class StudentController : ControllerBase
+    public class StudentsController : ControllerBase
     {
-        public static List<Student> Students = new List<Student>
-        {
-            new Student{ id = 1, firstName = "John", lastName = "Doe", age = 20 },
-            new Student{ id = 2, firstName = "Jane", lastName = "Doe", age = 21 },
-            new Student{ id = 3, firstName = "James", lastName = "Smith", age = 22 }
-        };
 
+        private readonly CollegeContext _context;
+
+        public StudentsController(CollegeContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/students
         [HttpGet]
-        public ActionResult<List<Student>> GetAllStudents()
+        public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
-            return Ok(Students);
+            return await _context.Students.ToListAsync();
         }
 
+        // GET: api/students/1
         [HttpGet("{id}")]
-        public ActionResult<Student> GetStudentById(int id)
+        public async Task<ActionResult<Student>> GetStudent(int id)
         {
-            var student = Students.FirstOrDefault(s => s.id == id);
+            var student = await _context.Students.FindAsync(id);
+
             if (student == null)
             {
                 return NotFound();
             }
-            return Ok(student);
+
+            return student;
         }
 
+        // POST: api/students
         [HttpPost]
-        public ActionResult<Student> AddStudent([FromBody] Student student)
+        public async Task<ActionResult<Student>> AddStudent([FromBody] Student student)
         {
-            student.id = Students.Count + 1;
-            Students.Add(student);
-            return CreatedAtAction(nameof(GetStudentById), new { id = student.id }, student);
-
+            _context.Students.Add(student);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetStudent), new { id = student.id }, student);
         }
 
+        // DELETE: api/students/1
         [HttpDelete("{id}")]
-        public ActionResult DeleteStudent(int id)
+        public async Task<IActionResult> DeleteStudent(int id)
         {
-            var student = Students.FirstOrDefault(s => s.id == id);
+            var student = await _context.Students.FindAsync(id);
+
             if (student == null)
             {
                 return NotFound();
             }
-            Students.Remove(student);
-            return Ok();
+
+            _context.Students.Remove(student);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
+        // PUT: api/students/1
         [HttpPut("{id}")]
-        public ActionResult<Student> UpdateStudent(int id, [FromBody] Student updatedStudent)
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] Student updatedStudent)
         {
-            var student = Students.FirstOrDefault(s => s.id == id);
+            if (id != updatedStudent.id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(updatedStudent).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Students.Any(e => e.id == id))
+                {
+                    return NotFound();
+                }
+                throw;
+            }
+
+            return NoContent();
+        }
+
+        // PATCH: api/students/1
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PartialUpdateStudent(int id, [FromBody] Student updatedStudent)
+        {
+            var student = await _context.Students.FindAsync(id);
+
             if (student == null)
             {
                 return NotFound();
             }
-            student.id = updatedStudent.id;
-            student.firstName = updatedStudent.firstName;
-            student.lastName = updatedStudent.lastName;
-            student.age = updatedStudent.age;
 
-            return Ok(student);
+            if (!string.IsNullOrEmpty(updatedStudent.firstName))
+            {
+                student.firstName = updatedStudent.firstName;
+            }
+            if (!string.IsNullOrEmpty(updatedStudent.lastName))
+            {
+                student.lastName = updatedStudent.lastName;
+            }
+            if (updatedStudent.age > 0)
+            {
+                student.age = updatedStudent.age;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+
         }
+
     }
 }
