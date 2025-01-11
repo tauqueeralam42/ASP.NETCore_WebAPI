@@ -18,6 +18,7 @@ namespace CMS.WebApi.Controllers
             _context = context;
         }
 
+        // GET: api/students
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
@@ -35,6 +36,7 @@ namespace CMS.WebApi.Controllers
             return student;
         }
 
+        // POST: api/students
         [HttpPost]
         public async Task<ActionResult<Student>> AddStudent([FromForm] StudentDto studentDto)
         {
@@ -65,6 +67,7 @@ namespace CMS.WebApi.Controllers
             return student;
         }
 
+        // PUT: api/students/1
         [HttpPut("{id}")]
         public async Task<ActionResult<Student>> UpdateStudent(Guid id, [FromForm] StudentDto updateStudentDto)
         {
