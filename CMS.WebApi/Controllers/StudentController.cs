@@ -45,6 +45,7 @@ namespace CMS.WebApi.Controllers
                 Id = Guid.NewGuid(),
                 firstName = studentDto.firstName,
                 lastName = studentDto.lastName,
+                email = studentDto.email,
                 age = studentDto.age
             };
             _context.Students.Add(student);
@@ -79,6 +80,7 @@ namespace CMS.WebApi.Controllers
 
             existingStudent.firstName = updateStudentDto.firstName;
             existingStudent.lastName = updateStudentDto.lastName;
+            existingStudent.email = updateStudentDto.email;
             existingStudent.age = updateStudentDto.age;
 
             _context.Entry(existingStudent).State = EntityState.Modified;

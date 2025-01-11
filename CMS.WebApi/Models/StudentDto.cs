@@ -10,7 +10,11 @@ namespace CMS.WebApi.Models
         [Required]
         public string lastName { get; set; }
 
+        [Required]
+        public string email { get; set; }
+
         [Range(18, 100)]
+        [Required]
         public int age { get; set; }
     }
 }
